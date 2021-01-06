@@ -6,11 +6,11 @@ class vibrance:
     def __init__(self):
         self.intensity = 1.0
 
-    def set_intensity(self, factor):
-        self.intensity = (factor - 50) / 50.0
+    def set_factor(self, factor):
+        self.intensity = (factor - 50) / 25.0
 
-    def get_intensity(self):
-        return self.intensity
+    def get_factor(self):
+        return int(self.intensity * 25 + 50.0)
 
     def do_vibrance(self, bgr):
         r = bgr[:, :, 2].astype(np.float64) / 255.0
