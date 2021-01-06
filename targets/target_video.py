@@ -4,21 +4,11 @@ import target_functions as tf
     
 # create window
 cv2.namedWindow('sharpen_image')
-cap = cv2.VideoCapture("goodgirl.mp4")
+cap = cv2.VideoCapture("videos/goodgirl.mp4")
 
-# createButton("stop", stopCallback, NULL, )
-
-
-# def stopCallback(state){
-#     if(cv2.waitKey(1) & 0xFF == ord(' ')):
-#             cv2.waitKey(0)
-# }
-
-# cv2.createButton("stop", stopCallback)
-
-cv2.createTrackbar("亮度", "sharpen_image", -50, 50, tf.nothing)
-cv2.createTrackbar("模糊半径", "sharpen_image", 1, 25, tf.nothing)
-cv2.createTrackbar("weight", "sharpen_image", 0, 2, tf.nothing)
+cv2.createTrackbar("addbright(*1%)", "sharpen_image", 0, 50, tf.nothing)
+cv2.createTrackbar("sigma(*1)", "sharpen_image", 0, 25, tf.nothing)
+cv2.createTrackbar("weight(*1%)", "sharpen_image", 0, 100, tf.nothing)
 
 while(cap.isOpened()):
     ret, frame = cap.read()
@@ -32,13 +22,15 @@ while(cap.isOpened()):
 
     # hsv_image = tf.histogram_equal(hsv_image, 2)
 
-    brightness_delta = cv2.getTrackbarPos("brightness-delta", 'sharpen_image') / 100.0
+    brightness_delta = cv2.getTrackbarPos("addbright(*1%)", 'sharpen_image') / 100.0
+    sigma = cv2.getTrackbarPos("sigma(*1)", "sharpen_image")
+    weight = cv2.getTrackbarPos("weight(*1%)", "sharpen_image") / 100.0
     
     hsv_image = tf.brightness_adjust(hsv_image, brightness_delta)
 
     bgr_image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
 
-    bgr_image = tf.unsharp_mask(bgr_image, )
+    bgr_image = tf.unsharp_mask(bgr_image, 25.0, weight)
 
     # show
     h, w = frame.shape[:2]
