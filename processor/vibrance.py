@@ -21,7 +21,7 @@ class vibrance:
         maxColor = np.maximum(np.maximum(r, g), b)
         color_saturation = maxColor - minColor
         luma = r * 0.072186 + g * 0.715158 + b * 0.212656
-        sign_intensity = 1.0 if (self.intensity > 0.0) else -1.0
+        sign_intensity = -1.0 if (self.intensity > 0.0) else 1.0
 
         cr = 1.0 + self.intensity * (1.0 - sign_intensity * color_saturation)
         cg = 1.0 + self.intensity * (1.0 - sign_intensity * color_saturation)
