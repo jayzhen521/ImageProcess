@@ -14,7 +14,7 @@ usmRunner = usm.unsharpenmask()
 claheRunner = ahe.adapthisteq()
 vibranceRunner = vibrance.vibrance()
 
-windowName = "leftEye"
+windowName = "setting"
 cv2.namedWindow(windowName)
 
 cv2.createTrackbar("vibrance", windowName,
@@ -32,6 +32,8 @@ cv2.createTrackbar("clahe::tilesColumn", windowName,
 
 cv2.createTrackbar("addbright(*1%)", windowName, 0, 50, tf.nothing)
 
+cv2.imshow(windowName, np.zeros((10, 512, 3), np.uint8))
+
 
 cap = cv2.VideoCapture("videos/goodgirl.mp4")
 while(cap.isOpened()):
@@ -44,12 +46,12 @@ while(cap.isOpened()):
         "addbright(*1%)", windowName) / 100.0
 
     # 加亮
-    hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    hsv_image = tf.brightness_adjust(hsv_image, brightness_delta)
-    bgr_image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
+    # hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    # hsv_image = tf.brightness_adjust(hsv_image, brightness_delta)
+    # bgr_image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
 
     # 锐化
-    bgr_image = usmRunner.do_usm(bgr_image)
+    bgr_image = usmRunner.do_usm(frame)
     # 自适应直方图处理
     bgr_image = claheRunner.do_vplane_clahe(bgr_image)
     # 自然饱和度
@@ -63,7 +65,7 @@ while(cap.isOpened()):
     cv2.putText(htich, "sharpen image", (w + 10, 30),
                 cv2.FONT_ITALIC, 1.0, (0, 0, 255), 2)
 
-    cv2.imshow(windowName, htich)
+    cv2.imshow("image", htich)
 
     # if cv2.waitKey(1):
     #     if 0xFF == ord(' '):
