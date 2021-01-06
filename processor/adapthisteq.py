@@ -20,13 +20,13 @@ class adapthisteq:
         return self.tilesColumn
 
     def set_clipLimit(self, clipLimit):
-        self.clipLimit = clipLimit / 10.0
+        self.clipLimit = max(0.01, clipLimit / 10.0)
 
     def set_tilesRow(self, tilesRow):
-        self.tilesRow = tilesRow
+        self.tilesRow = max(1, tilesRow)
 
     def set_tilesColumn(self, tilesColumn):
-        self.tilesColumn = tilesColumn
+        self.tilesColumn = max(1, tilesColumn)
 
     def do_vplane_clahe(self, rgb):
         self.clahe.setClipLimit(self.clipLimit)

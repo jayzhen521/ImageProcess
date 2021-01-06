@@ -9,10 +9,14 @@ import target_functions as tf
 import adapthisteq as ahe
 import unsharpenmask as usm
 import vibrance as vibrance
+import framecontrol
+import adjustbright
 
 usmRunner = usm.unsharpenmask()
 claheRunner = ahe.adapthisteq()
 vibranceRunner = vibrance.vibrance()
+frameControl = framecontrol.framecontrol()
+adjustBright = adjustbright.adjustbright()
 
 windowName = "setting"
 cv2.namedWindow(windowName)
@@ -30,39 +34,39 @@ cv2.createTrackbar("clahe::tilesRow", windowName,
 cv2.createTrackbar("clahe::tilesColumn", windowName,
                    claheRunner.get_tilesColumn(), 16, claheRunner.set_tilesColumn)
 
-cv2.createTrackbar("addbright(*1%)", windowName, 0, 50, tf.nothing)
+cv2.createTrackbar("bright", windowName,
+                   adjustBright.get_delta(), 50, adjustBright.set_delta)
+
+cv2.createTrackbar("frame::frameControl", windowName,
+                   frameControl.get_ifGetNextFrame(), 1, frameControl.set_ifGetNextFrame)
 
 cv2.imshow(windowName, np.zeros((10, 512, 3), np.uint8))
 
 
 cap = cv2.VideoCapture("videos/goodgirl.mp4")
 while(cap.isOpened()):
-    ret, frame = cap.read()
 
-    if ret is False:
-        break
+    if frameControl.get_isFirstFrame() or frameControl.get_ifGetNextFrame():
+        ret, frame = cap.read()
+        frameControl.set_isFirstFrame(False)
 
-    brightness_delta = cv2.getTrackbarPos(
-        "addbright(*1%)", windowName) / 100.0
+        if ret is False:
+            break
 
     # 加亮
-    # hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    # hsv_image = tf.brightness_adjust(hsv_image, brightness_delta)
-    # bgr_image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
-
+    bgr_image = adjustBright.do_adjust(frame)
     # 锐化
-    bgr_image = usmRunner.do_usm(frame)
+    bgr_image = usmRunner.do_usm(bgr_image)
     # 自适应直方图处理
     bgr_image = claheRunner.do_vplane_clahe(bgr_image)
     # 自然饱和度
     bgr_image = vibranceRunner.do_vibrance(bgr_image)
 
     # show
-    h, w = frame.shape[:2]
     htich = np.hstack((frame, bgr_image))
     cv2.putText(htich, "original image", (10, 30),
                 cv2.FONT_ITALIC, 1.0, (0, 0, 255), 2)
-    cv2.putText(htich, "sharpen image", (w + 10, 30),
+    cv2.putText(htich, "enhance image", (frame.shape[1] + 10, 30),
                 cv2.FONT_ITALIC, 1.0, (0, 0, 255), 2)
 
     cv2.imshow("image", htich)
