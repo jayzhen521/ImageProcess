@@ -4,7 +4,7 @@ import cv2
 
 class adapthisteq:
     def __init__(self):
-        self.clipLimit = 1.0
+        self.clipLimit = 0.01
         self.tilesRow = 8
         self.tilesColumn = 8
         self.clahe = cv2.createCLAHE(

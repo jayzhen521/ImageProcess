@@ -4,7 +4,7 @@ import cv2
 
 class vibrance:
     def __init__(self):
-        self.intensity = 1.0
+        self.intensity = 0.0
 
     def set_factor(self, factor):
         self.intensity = (factor - 50) / 25.0

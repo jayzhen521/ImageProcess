@@ -5,17 +5,17 @@ import cv2
 class unsharpenmask:
     def __init__(self):
         self.ksize = 5
-        self.sigma = 5
-        self.weight = 0.5
+        self.sigma = 0
+        self.weight = 0.0
 
     def set_ksize(self, ksize):
-        self.ksize = ksize % 2 + 1
+        self.ksize = max(3, (ksize / 2) * 2 + 1)
 
     def set_sigma(self, sigma):
-        self.sigma = sigma
+        self.sigma = max(1, sigma)
 
     def set_weight(self, weight):
-        self.weight = weight / 100.0
+        self.weight = weight / 25.0
 
     def get_ksize(self):
         return self.ksize
@@ -24,7 +24,7 @@ class unsharpenmask:
         return self.sigma
 
     def get_weight(self):
-        return int(self.weight * 100)
+        return int(self.weight * 25.0)
 
     def do_usm(self, rgb):
         blur = cv2.GaussianBlur(
