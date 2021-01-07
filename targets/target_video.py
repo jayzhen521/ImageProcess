@@ -21,6 +21,24 @@ adjustBright = adjustbright.adjustbright()
 windowName = "setting"
 cv2.namedWindow(windowName)
 
+# command parameter 
+if len(sys.argv) <= 1:
+    print("error, please enter video path.")
+    sys.exit()
+
+if len(sys.argv) >= 3:
+    if sys.argv[2] == "True":
+        frameControl.set_ifGetNextFrame(1)
+
+if_imShowRun = True
+if len(sys.argv) >= 4:
+    if sys.argv[3] == "False":
+        if_imShowRun = False
+
+adjust_name = "default"
+if len(sys.argv) >= 5:
+    adjust_name = sys.argv[4]
+
 cv2.createTrackbar("vibrance", windowName,
                    vibranceRunner.get_factor(), 100, vibranceRunner.set_factor)
 cv2.createTrackbar("usm::ksize", windowName,
@@ -40,10 +58,15 @@ cv2.createTrackbar("bright", windowName,
 cv2.createTrackbar("frame::frameControl", windowName,
                    frameControl.get_ifGetNextFrame(), 1, frameControl.set_ifGetNextFrame)
 
+cv2.resizeWindow(windowName, (400, 512))
 cv2.imshow(windowName, np.zeros((10, 512, 3), np.uint8))
 
+cap = cv2.VideoCapture(sys.argv[1])
 
-cap = cv2.VideoCapture("videos/goodgirl.mp4")
+fps =int(cap.get(cv2.CAP_PROP_FPS))
+size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) * 2, int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+videoWriter = cv2.VideoWriter(sys.argv[1] + ".mp4", cv2.VideoWriter_fourcc('I','4','2','0'), fps, size)
+
 while(cap.isOpened()):
 
     if frameControl.get_isFirstFrame() or frameControl.get_ifGetNextFrame():
@@ -57,8 +80,8 @@ while(cap.isOpened()):
     bgr_image = adjustBright.do_adjust(frame)
     # 锐化
     bgr_image = usmRunner.do_usm(bgr_image)
-    # 自适应直方图处理
-    bgr_image = claheRunner.do_vplane_clahe(bgr_image)
+    # # 自适应直方图处理
+    # bgr_image = claheRunner.do_vplane_clahe(bgr_image)
     # 自然饱和度
     bgr_image = vibranceRunner.do_vibrance(bgr_image)
 
@@ -69,7 +92,13 @@ while(cap.isOpened()):
     cv2.putText(htich, "enhance image", (frame.shape[1] + 10, 30),
                 cv2.FONT_ITALIC, 1.0, (0, 0, 255), 2)
 
-    cv2.imshow("image", htich)
+
+
+    if if_imShowRun:
+        cv2.imshow("image", htich)
+
+    videoWriter.write(htich)
+    
 
     # if cv2.waitKey(1):
     #     if 0xFF == ord(' '):
@@ -83,6 +112,15 @@ while(cap.isOpened()):
     if cv2.waitKey(20) & 0xFF == ord('q'):
         break
 
+usmRunner.getData()
+claheRunner.getData()
+vibranceRunner.getData()
+adjustBright.getData()
+
+adjustData = "{\"" + adjust_name + "\": [" + usmRunner.getData() + "," + claheRunner.getData() + "," + vibranceRunner.getData() + "," + adjustBright.getData() + "]}"
+
+with open("adjustData/" + adjust_name + ".txt", "w") as f:
+    f.write(adjustData)
 
 cap.release()
 cv2.destroyAllWindows()
