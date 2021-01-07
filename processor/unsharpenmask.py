@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
+from rw import rw
 
-
-class unsharpenmask:
+class unsharpenmask(rw):
     def __init__(self):
         self.ksize = 5
         self.sigma = 0

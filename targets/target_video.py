@@ -35,6 +35,10 @@ if len(sys.argv) >= 4:
     if sys.argv[3] == "False":
         if_imShowRun = False
 
+adjust_name = "default"
+if len(sys.argv) >= 5:
+    adjust_name = sys.argv[4]
+
 cv2.createTrackbar("vibrance", windowName,
                    vibranceRunner.get_factor(), 100, vibranceRunner.set_factor)
 cv2.createTrackbar("usm::ksize", windowName,
@@ -108,6 +112,15 @@ while(cap.isOpened()):
     if cv2.waitKey(20) & 0xFF == ord('q'):
         break
 
+usmRunner.getData()
+claheRunner.getData()
+vibranceRunner.getData()
+adjustBright.getData()
+
+adjustData = "{\"" + adjust_name + "\": [" + usmRunner.getData() + "," + claheRunner.getData() + "," + vibranceRunner.getData() + "," + adjustBright.getData() + "]}"
+
+with open("adjustData/" + adjust_name + ".txt", "w") as f:
+    f.write(adjustData)
 
 cap.release()
 cv2.destroyAllWindows()

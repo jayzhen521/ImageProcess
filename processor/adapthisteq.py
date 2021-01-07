@@ -1,13 +1,13 @@
 import numpy as np
 import cv2
+from rw import rw
 
-
-class adapthisteq:
+class adapthisteq(rw):
     def __init__(self):
         self.clipLimit = 0.01
         self.tilesRow = 8
         self.tilesColumn = 8
-        self.clahe = cv2.createCLAHE(
+        clahe = cv2.createCLAHE(
             clipLimit=self.clipLimit, tileGridSize=(self.tilesRow, self.tilesColumn))
 
     def get_clipLimit(self):
@@ -29,8 +29,8 @@ class adapthisteq:
         self.tilesColumn = max(1, tilesColumn)
 
     def do_vplane_clahe(self, rgb):
-        self.clahe.setClipLimit(self.clipLimit)
-        self.clahe.setTilesGridSize((self.tilesRow, self.tilesColumn))
+        clahe.setClipLimit(self.clipLimit)
+        clahe.setTilesGridSize((self.tilesRow, self.tilesColumn))
 
         hsv = cv2.cvtColor(rgb, cv2.COLOR_BGR2HSV)
         hsv[:, :, 2] = self.clahe.apply(hsv[:, :, 2])

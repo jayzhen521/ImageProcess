@@ -1,8 +1,9 @@
 import numpy as np
 import cv2
+from rw import rw
 
 
-class adjustbright:
+class adjustbright(rw):
     def __init__(self):
         self.delta = 0.0
 

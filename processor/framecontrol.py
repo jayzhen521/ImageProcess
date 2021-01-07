@@ -1,4 +1,6 @@
-class framecontrol:
+from rw import rw
+
+class framecontrol(rw):
     def __init__(self):
         self.isFirstFrame = True
         self.ifGetNextFrame = 0
@@ -14,3 +16,5 @@ class framecontrol:
 
     def set_ifGetNextFrame(self, ifGetNext):
         self.ifGetNextFrame = ifGetNext
+
+    
