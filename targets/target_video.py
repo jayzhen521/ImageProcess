@@ -1,6 +1,8 @@
 import sys
 import os
 sys.path.append(os.path.split(os.path.abspath(__file__))[0] + "/../processor")
+import json
+from collections import namedtuple
 
 import numpy as np
 import cv2
@@ -12,23 +14,15 @@ import vibrance as vibrance
 import framecontrol
 import adjustbright
 
-usmRunner = usm.unsharpenmask()
-claheRunner = ahe.adapthisteq()
-vibranceRunner = vibrance.vibrance()
-frameControl = framecontrol.framecontrol()
-adjustBright = adjustbright.adjustbright()
-
-windowName = "setting"
-cv2.namedWindow(windowName)
-
 # command parameter 
 if len(sys.argv) <= 1:
     print("error, please enter video path.")
     sys.exit()
 
+if_getNextFrame = 0
 if len(sys.argv) >= 3:
     if sys.argv[2] == "True":
-        frameControl.set_ifGetNextFrame(1)
+        if_getNextFrame = 1
 
 if_imShowRun = True
 if len(sys.argv) >= 4:
@@ -38,6 +32,39 @@ if len(sys.argv) >= 4:
 adjust_name = "default"
 if len(sys.argv) >= 5:
     adjust_name = sys.argv[4]
+
+
+usmRunner = usm.unsharpenmask()
+claheRunner = ahe.adapthisteq()
+vibranceRunner = vibrance.vibrance()
+frameControl = framecontrol.framecontrol()
+adjustBright = adjustbright.adjustbright()
+
+adjustDataPath = "adjustData/" + adjust_name + ".txt"
+
+readAdjustData = ""
+if os.path.exists(adjustDataPath):
+    with open(adjustDataPath, "r") as f:
+        readAdjustData = f.read()
+
+if readAdjustData != "":
+    adjustDataDict = json.loads(readAdjustData)
+    # print(adjustDataDict[adjust_name])
+
+for adjustItem in adjustDataDict[adjust_name]:
+    for key in adjustItem:
+        if key == "unsharpenmask":
+            d = adjustItem[key]
+            usmRunner.set_ksize(d["ksize"])
+            usmRunner.set_sigma(d["sigma"])
+            usmRunner.set_weight(d["weight"])
+
+windowName = "setting"
+cv2.namedWindow(windowName)
+
+
+
+frameControl.set_ifGetNextFrame(if_getNextFrame)
 
 cv2.createTrackbar("vibrance", windowName,
                    vibranceRunner.get_factor(), 100, vibranceRunner.set_factor)
@@ -111,11 +138,6 @@ while(cap.isOpened()):
 
     if cv2.waitKey(20) & 0xFF == ord('q'):
         break
-
-usmRunner.getData()
-claheRunner.getData()
-vibranceRunner.getData()
-adjustBright.getData()
 
 adjustData = "{\"" + adjust_name + "\": [" + usmRunner.getData() + "," + claheRunner.getData() + "," + vibranceRunner.getData() + "," + adjustBright.getData() + "]}"
 
