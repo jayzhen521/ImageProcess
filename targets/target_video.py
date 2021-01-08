@@ -39,18 +39,12 @@ if use_adapthisteq:
     cv2.createTrackbar("clahe::tilesColumn", windowName,
                        claheRunner.get_tilesColumn(), 16, claheRunner.set_tilesColumn)
 else:
-    cv2.createTrackbar("localhist::k0", windowName,
-                       localhisteq.get_k0(), 100, localhisteq.set_k0)
-    cv2.createTrackbar("localhist::k1", windowName,
-                       localhisteq.get_k1(), 100, localhisteq.set_k1)
-    cv2.createTrackbar("localhist::s0", windowName,
-                       localhisteq.get_s0(), 100, localhisteq.set_s0)
-    cv2.createTrackbar("localhist::s1", windowName,
-                       localhisteq.get_s1(), 100, localhisteq.set_s1)
+    cv2.createTrackbar("localhist::maxCG", windowName,
+                       localhisteq.get_maxCG(), 100, localhisteq.set_maxCG)
+    cv2.createTrackbar("localhist::dcoff", windowName,
+                       localhisteq.get_DCoff(), 100, localhisteq.set_DCoff)
     cv2.createTrackbar("localhist::ksize", windowName,
                        localhisteq.get_ksize(), 16, localhisteq.set_ksize)
-    cv2.createTrackbar("localhist::C", windowName,
-                       localhisteq.get_C(), 100, localhisteq.set_C)
 
 cv2.createTrackbar("bright", windowName,
                    adjustBright.get_delta(), 50, adjustBright.set_delta)

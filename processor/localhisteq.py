@@ -4,43 +4,21 @@ import cv2
 
 class localhisteq:
     def __init__(self):
-        self.k0 = 0.0
-        self.k1 = 0.25
-        self.s0 = 0
-        self.s1 = 0.1
-        self.C = 2
         self.ksize = 7
-        self.print = False
+        self.maxCG = 3
+        self.DCoff = 0.5
 
-    def get_k0(self):
-        return int(100 * self.k0)
+    def get_maxCG(self):
+        return int(10 * self.maxCG)
 
-    def get_k1(self):
-        return int(100 * self.k1)
+    def set_maxCG(self, maxcg):
+        self.maxCG = maxcg / 10.0
 
-    def get_s0(self):
-        return int(100 * self.s0)
+    def get_DCoff(self):
+        return int(100 * self.DCoff)
 
-    def get_s1(self):
-        return int(100 * self.s1)
-
-    def set_k0(self, k0):
-        self.k0 = k0 / 100.0
-
-    def set_k1(self, k1):
-        self.k1 = k1 / 100.0
-
-    def set_s0(self, s0):
-        self.s0 = s0 / 100.0
-
-    def set_s1(self, s1):
-        self.s1 = s1 / 100.0
-
-    def set_C(self, c):
-        self.C = c / 10.0
-
-    def get_C(self):
-        return int(10 * self.C)
+    def set_DCoff(self, DCoff):
+        self.DCoff = DCoff / 100.0
 
     def set_ksize(self, ksize):
         self.ksize = max(3, ksize)
@@ -60,12 +38,12 @@ class localhisteq:
         mean_gII = np.mean(II)
         var_gI = mean_gII - mean_gI * mean_gI
 
-        comk0 = mean_lI >= self.k0 * mean_gI
-        comk1 = mean_lI <= self.k1 * mean_gI
-        coms0 = var_lI >= self.s0 * var_gI
-        coms1 = var_lI <= self.s1 * var_gI
+        diff = I - mean_lI
+        cg = mean_gI * self.DCoff / \
+            np.maximum(np.sqrt(np.maximum(var_lI, 0)), 0.01)
+        cg = np.clip(cg, 1.0, self.maxCG)
+        newI = mean_lI + diff * cg
 
-        coff = 1 + comk0 * comk1 * coms0 * coms1 * (self.C - 1.0)
-        mean_coff = cv2.GaussianBlur(coff, (7, 7), 0)
+        coff = newI / np.maximum(0.01, I)
 
-        return np.clip(rgb * np.stack((mean_coff, mean_coff, mean_coff), -1), 0, 255).astype(np.uint8)
+        return np.clip(rgb * np.stack((coff, coff, coff), -1), 0, 255).astype(np.uint8)
