@@ -11,12 +11,16 @@ import unsharpenmask as usm
 import vibrance as vibrance
 import framecontrol
 import adjustbright
+import localhisteq
+
+use_adapthisteq = False
 
 usmRunner = usm.unsharpenmask()
 claheRunner = ahe.adapthisteq()
 vibranceRunner = vibrance.vibrance()
 frameControl = framecontrol.framecontrol()
 adjustBright = adjustbright.adjustbright()
+localhisteq = localhisteq.localhisteq()
 
 windowName = "setting"
 cv2.namedWindow(windowName)
@@ -27,12 +31,26 @@ cv2.createTrackbar("usm::ksize", windowName,
                    usmRunner.get_ksize(), 25, usmRunner.set_ksize)
 cv2.createTrackbar("usm::weight", windowName,
                    usmRunner.get_weight(), 100, usmRunner.set_weight)
-cv2.createTrackbar("clahe::cliplimit", windowName,
-                   claheRunner.get_clipLimit(), 100, claheRunner.set_clipLimit)
-cv2.createTrackbar("clahe::tilesRow", windowName,
-                   claheRunner.get_tilesRow(), 16, claheRunner.set_tilesRow)
-cv2.createTrackbar("clahe::tilesColumn", windowName,
-                   claheRunner.get_tilesColumn(), 16, claheRunner.set_tilesColumn)
+if use_adapthisteq:
+    cv2.createTrackbar("clahe::cliplimit", windowName,
+                       claheRunner.get_clipLimit(), 100, claheRunner.set_clipLimit)
+    cv2.createTrackbar("clahe::tilesRow", windowName,
+                       claheRunner.get_tilesRow(), 16, claheRunner.set_tilesRow)
+    cv2.createTrackbar("clahe::tilesColumn", windowName,
+                       claheRunner.get_tilesColumn(), 16, claheRunner.set_tilesColumn)
+else:
+    cv2.createTrackbar("localhist::k0", windowName,
+                       localhisteq.get_k0(), 100, localhisteq.set_k0)
+    cv2.createTrackbar("localhist::k1", windowName,
+                       localhisteq.get_k1(), 100, localhisteq.set_k1)
+    cv2.createTrackbar("localhist::s0", windowName,
+                       localhisteq.get_s0(), 100, localhisteq.set_s0)
+    cv2.createTrackbar("localhist::s1", windowName,
+                       localhisteq.get_s1(), 100, localhisteq.set_s1)
+    cv2.createTrackbar("localhist::ksize", windowName,
+                       localhisteq.get_ksize(), 16, localhisteq.set_ksize)
+    cv2.createTrackbar("localhist::C", windowName,
+                       localhisteq.get_C(), 100, localhisteq.set_C)
 
 cv2.createTrackbar("bright", windowName,
                    adjustBright.get_delta(), 50, adjustBright.set_delta)
@@ -57,8 +75,13 @@ while(cap.isOpened()):
     bgr_image = adjustBright.do_adjust(frame)
     # 锐化
     bgr_image = usmRunner.do_usm(bgr_image)
-    # 自适应直方图处理
-    bgr_image = claheRunner.do_vplane_clahe(bgr_image)
+
+    if use_adapthisteq:
+        # 自适应直方图处理
+        bgr_image = claheRunner.do_vplane_clahe(bgr_image)
+    else:
+        bgr_image = localhisteq.do_localhisteq(bgr_image)
+
     # 自然饱和度
     bgr_image = vibranceRunner.do_vibrance(bgr_image)
 
