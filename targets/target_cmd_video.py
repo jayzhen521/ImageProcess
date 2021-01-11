@@ -27,14 +27,9 @@ class ImageEnhancement(Cmd):
     Type help or ? to list commands.
     '''
 
-    # 锐化、饱和度、亮度调节对象
-    def adjusterInit(self):
-        self.usmRunner = usm.unsharpenmask()
-        self.vibranceRunner = vibrance.vibrance()
-        self.adjustBright = adjustbright.adjustbright()
-
     def __init__(self):
-        
+        super(ImageEnhancement, self).__init__()
+
         self.filePath = None
 
         self.outputAdjustData = None
@@ -44,7 +39,7 @@ class ImageEnhancement(Cmd):
 
         self.videoWriter = None
 
-        self.videoControl = VideoControl.VideoControl()
+        self.videoControl = None
 
         self.usmRunner = None
         self.vibranceRunner = None
@@ -53,6 +48,15 @@ class ImageEnhancement(Cmd):
         self.windowName = "AdjustWindow"
 
         self.videoCapture = None
+
+    def do_adjust(self, argv):
+        '''input 3 parameter: filepath adjust_name video_status
+            filepath,
+            adjust name(snow_scene, forest_scene, asian, white, black... ),
+            video status:(Playing, Pause)
+        '''
+
+        self.parameterOperation(argv)
 
         self.adjusterInit()
         
@@ -68,12 +72,12 @@ class ImageEnhancement(Cmd):
 
         self.unInit()
 
-    def do_adjust(self, argv):
-        '''input 3 parameter: filepath adjust_name video_status
-            filepath,
-            adjust name(snow_scene, forest_scene, asian, white, black... ),
-            video status:(Playing, Pause)
-        '''
+    # 锐化、饱和度、亮度调节对象
+    def adjusterInit(self):
+        
+        self.usmRunner = usm.unsharpenmask()
+        self.vibranceRunner = vibrance.vibrance()
+        self.adjustBright = adjustbright.adjustbright()
 
 
     def adjustWindowSetting(self):
@@ -95,11 +99,12 @@ class ImageEnhancement(Cmd):
             # 调节输出设定
             outputAdjustDataPath = "adjustData/" + parameters[1] + ".txt"
 
+            self.videoControl = VideoControl.VideoControl()
+
             if parameters[2] == "Play":
-                self.videoControl.set_videoStatus(VideoStatus['Playing'])
+                self.videoControl.set_videoStatus(VideoStatus['Playing'].value)
             elif parameters[2] == "Pause":
-                # videoStatus = VideoStatus.Pause
-                self.videoControl.set_videoStatus(VideoStatus['Paused'])
+                self.videoControl.set_videoStatus(VideoStatus['Paused'].value)
             
 
     def do_exit(self, arg):
@@ -123,11 +128,11 @@ class ImageEnhancement(Cmd):
                         self.videoControl.get_videoStatus(), 1, self.videoControl.set_videoStatus)
 
     def videoOutputSetting(self):
-        print("videoOutputSetting")
-        print(self.videoCapture.get_size())
+        if self.videoCapture:
+            print(self.videoCapture.get_size())
         self.videoWriter = cv2.VideoWriter(
             self.outputVideoDataPath, cv2.VideoWriter_fourcc('I', '4', '2', '0'),
-             self.videoCapture.get_fps(), self.videoCapture.get_size())
+            self.videoCapture.get_fps(), (self.videoCapture.get_size()[0] * 2, self.videoCapture.get_size()[1]))
 
     def loopRun(self):
 
@@ -150,7 +155,7 @@ class ImageEnhancement(Cmd):
 
             cv2.imshow("image", htich)
 
-            videoWriter.write(htich)
+            self.videoWriter.write(htich)
 
             if(cv2.waitKey(1) & 0xFF == ord(' ')):
                 cv2.waitKey(0)
@@ -158,14 +163,16 @@ class ImageEnhancement(Cmd):
             if cv2.waitKey(20) & 0xFF == ord('q'):
                 break
 
-            if self.videoCapture.isOpened() and self.videoStatus == VideoStatus.Playing:
+            if self.videoCapture.isOpened() and self.videoControl.get_videoStatus() == VideoStatus.Playing.value:
                 ref, frame = self.videoCapture.read()
+                if not ref:
+                    break
             else:
                 continue
-                
+
 
     def videoOutput(self):
-        outputAdjustData = "{\"" + adjust_name + "\": [" + usmRunner.getData() + "," + claheRunner.getData() + "," + vibranceRunner.getData() + "," + adjustBright.getData() + "]}"
+        outputAdjustData = "{\"" + self.outputAdjustDataPath + "\": [" + self.usmRunner.getData() + "," + self.claheRunner.getData() + "," + self.vibranceRunner.getData() + "," + self.adjustBright.getData() + "]}"
 
         with open(self.outputAdjustDataPath, "w") as f:
             print(outputAdjustData)
