@@ -18,7 +18,7 @@ class unsharpenmask(rw):
         self.weight = weight / 25.0
 
     def get_ksize(self):
-        return self.ksize
+        return int(self.ksize)
 
     def get_sigma(self):
         return self.sigma
@@ -28,7 +28,7 @@ class unsharpenmask(rw):
 
     def do_usm(self, rgb):
         blur = cv2.GaussianBlur(
-            rgb, (self.ksize, self.ksize), self.sigma, self.sigma)
+            rgb, (self.get_ksize(), self.get_ksize()), self.sigma, self.sigma)
         return cv2.addWeighted(rgb, 1.0 + self.weight, blur, -self.weight, 0)
 
     def GuideBlur(self, I, p, winSize, eps):
@@ -53,7 +53,7 @@ class unsharpenmask(rw):
     def do_guide_usm(self, rgb):
         I = rgb / 255.0
 
-        blur = np.clip(self.GuideBlur(I, I, (self.ksize, self.ksize), 0.01)
+        blur = np.clip(self.GuideBlur(I, I, (self.get_ksize(), self.get_ksize()), 0.01)
                        * 255.0, 0, 255.0).astype(np.uint8)
 
         return cv2.addWeighted(rgb, 1.0 + self.weight, blur, -self.weight, 0)
