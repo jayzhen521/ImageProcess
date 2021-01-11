@@ -12,60 +12,94 @@ import target_functions as tf
 import adapthisteq as ahe
 import unsharpenmask as usm
 import vibrance as vibrance
-import framecontrol
 import adjustbright
 import localhisteq
+import VideoControl
+import VideoCapture
+from VideoStatus import VideoStatus
 
+# output variables
+# outputAdjustData, outputAdjustDataPath
+# outputVideoData, outputVideoDataPath
 
 class ImageEnhancement(Cmd):
     intro = '''====Image enhancement, designed by "Searching Center, Energysh"====
     Type help or ? to list commands.
     '''
 
+    # 锐化、饱和度、亮度调节对象
+    def adjusterInit(self):
+        self.usmRunner = usm.unsharpenmask()
+        self.vibranceRunner = vibrance.vibrance()
+        self.adjustBright = adjustbright.adjustbright()
+
     def __init__(self):
-        usmRunner = usm.unsharpenmask()
-        claheRunner = ahe.adapthisteq()
-        vibranceRunner = vibrance.vibrance()
-        frameControl = framecontrol.framecontrol()
-        adjustBright = adjustbright.adjustbright()
-        localhisteq = localhisteq.localhisteq()
+        
+        self.filePath = None
 
-        windowName = "setting"
-        cv2.namedWindow(windowName)
+        self.outputAdjustData = None
+        self.outputAdjustDataPath = None
+        self.outputVideoData = None
+        self.outputVideoDataPath = None
 
-        adjustDataPath = "adjustData/" + adjust_name + ".txt"
+        self.videoWriter = None
 
-        readAdjustData = ""
-        if os.path.exists(adjustDataPath):
-            with open(adjustDataPath, "r") as f:
-                readAdjustData = f.read()
+        self.videoControl = VideoControl.VideoControl()
 
-        adjustDataDict = None
-        if readAdjustData != "":
-            adjustDataDict = json.loads(readAdjustData)
-            # print(adjustDataDict[adjust_name])
+        self.usmRunner = None
+        self.vibranceRunner = None
+        self.adjustBright = None
 
-        if adjustDataDict:
-            for adjustItem in adjustDataDict[adjust_name]:
-                for key in adjustItem:
-                    if key == "unsharpenmask":
-                        d = adjustItem[key]
-                        usmRunner.set_ksize(d["ksize"])
-                        usmRunner.set_sigma(d["sigma"])
-                        usmRunner.set_weight(d["weight"])
+        self.windowName = "AdjustWindow"
 
-        trackbarSetting()
+        self.videoCapture = None
+
+        self.adjusterInit()
+        
+        self.adjustWindowSetting()
+
+        self.trackbarSetting()
+
+        self.videoOutputSetting()
+
+        self.loopRun()
     
+        self.videoOutput()
+
+        self.unInit()
 
     def do_adjust(self, argv):
         '''input 3 parameter: filepath adjust_name video_status
-    filepath,
-    adjust name(snow_scene, forest_scene, asian, white, black... ),
-    video status:(Pause, Resume)'''
+            filepath,
+            adjust name(snow_scene, forest_scene, asian, white, black... ),
+            video status:(Playing, Pause)
+        '''
+
+
+    def adjustWindowSetting(self):
+        cv2.namedWindow(self.windowName)
+        cv2.resizeWindow(self.windowName, (400, 512))
+        cv2.imshow(self.windowName, np.zeros((10, 512, 3), np.uint8))
+        
+            
+    def parameterOperation(self, argv):
 
         parameters = argv.split(' ')
 
         if parameters and parameters[0] != "exit" and len(parameters) == 3:
+            filePath = parameters[0]
+
+            self.outputVideoDataPath = filePath + ".mp4"
+
+            self.videoCapture = VideoCapture.VideoCapture(filePath)
+            # 调节输出设定
+            outputAdjustDataPath = "adjustData/" + parameters[1] + ".txt"
+
+            if parameters[2] == "Play":
+                self.videoControl.set_videoStatus(VideoStatus['Playing'])
+            elif parameters[2] == "Pause":
+                # videoStatus = VideoStatus.Pause
+                self.videoControl.set_videoStatus(VideoStatus['Paused'])
             
 
     def do_exit(self, arg):
@@ -76,43 +110,71 @@ class ImageEnhancement(Cmd):
 
     # trackball control
     def trackbarSetting(self):
-        cv2.createTrackbar("vibrance", windowName,
-                    vibranceRunner.get_factor(), 100, vibranceRunner.set_factor)
-        cv2.createTrackbar("usm::ksize", windowName,
-                        usmRunner.get_ksize(), 25, usmRunner.set_ksize)
-        cv2.createTrackbar("usm::weight", windowName,
-                        usmRunner.get_weight(), 100, usmRunner.set_weight)
-        if use_adapthisteq:
-            cv2.createTrackbar("clahe::cliplimit", windowName,
-                            claheRunner.get_clipLimit(), 100, claheRunner.set_clipLimit)
-            cv2.createTrackbar("clahe::tilesRow", windowName,
-                            claheRunner.get_tilesRow(), 16, claheRunner.set_tilesRow)
-            cv2.createTrackbar("clahe::tilesColumn", windowName,
-                            claheRunner.get_tilesColumn(), 16, claheRunner.set_tilesColumn)
-        else:
-            cv2.createTrackbar("localhist::maxCG", windowName,
-                            localhisteq.get_maxCG(), 100, localhisteq.set_maxCG)
-            cv2.createTrackbar("localhist::dcoff", windowName,
-                            localhisteq.get_DCoff(), 100, localhisteq.set_DCoff)
-            cv2.createTrackbar("localhist::ksize", windowName,
-                            localhisteq.get_ksize(), 16, localhisteq.set_ksize)
+        # trackbar设定
+        cv2.createTrackbar("vibrance", self.windowName,
+                   self.vibranceRunner.get_factor(), 100, self.vibranceRunner.set_factor)
+        cv2.createTrackbar("usm::ksize", self.windowName,
+                        self.usmRunner.get_ksize(), 25, self.usmRunner.set_ksize)
+        cv2.createTrackbar("usm::weight", self.windowName,
+                        self.usmRunner.get_weight(), 100, self.usmRunner.set_weight)
+        cv2.createTrackbar("bright", self.windowName,
+                        self.adjustBright.get_delta(), 50, self.adjustBright.set_delta)
+        cv2.createTrackbar("frame::frameControl", self.windowName,
+                        self.videoControl.get_videoStatus(), 1, self.videoControl.set_videoStatus)
 
-        cv2.createTrackbar("bright", windowName,
-                        adjustBright.get_delta(), 50, adjustBright.set_delta)
+    def videoOutputSetting(self):
+        print("videoOutputSetting")
+        print(self.videoCapture.get_size())
+        self.videoWriter = cv2.VideoWriter(
+            self.outputVideoDataPath, cv2.VideoWriter_fourcc('I', '4', '2', '0'),
+             self.videoCapture.get_fps(), self.videoCapture.get_size())
 
-        cv2.createTrackbar("frame::frameControl", windowName,
-                        frameControl.get_ifGetNextFrame(), 1, frameControl.set_ifGetNextFrame)
+    def loopRun(self):
 
-    def captureSetting(self):
-        cap = cv2.VideoCapture(sys.argv[1])
+        ref, frame = self.videoCapture.read()
 
-        fps = int(cap.get(cv2.CAP_PROP_FPS))
-        size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) *
-                2, int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        while True:
+            # 加亮
+            bgr_image = self.adjustBright.do_adjust(frame)
+            # 锐化
+            bgr_image = self.usmRunner.do_usm(bgr_image)
+            # 自然饱和度
+            bgr_image = self.vibranceRunner.do_vibrance(bgr_image)
 
-    def resultSetting(self):
-        videoWriter = cv2.VideoWriter(
-            sys.argv[1] + ".mp4", cv2.VideoWriter_fourcc('I', '4', '2', '0'), fps, size)
+            # show
+            htich = np.hstack((frame, bgr_image))
+            cv2.putText(htich, "original image", (10, 30),
+                        cv2.FONT_ITALIC, 1.0, (0, 0, 255), 2)
+            cv2.putText(htich, "enhance image", (frame.shape[1] + 10, 30),
+                        cv2.FONT_ITALIC, 1.0, (0, 0, 255), 2)
+
+            cv2.imshow("image", htich)
+
+            videoWriter.write(htich)
+
+            if(cv2.waitKey(1) & 0xFF == ord(' ')):
+                cv2.waitKey(0)
+
+            if cv2.waitKey(20) & 0xFF == ord('q'):
+                break
+
+            if self.videoCapture.isOpened() and self.videoStatus == VideoStatus.Playing:
+                ref, frame = self.videoCapture.read()
+            else:
+                continue
+                
+
+    def videoOutput(self):
+        outputAdjustData = "{\"" + adjust_name + "\": [" + usmRunner.getData() + "," + claheRunner.getData() + "," + vibranceRunner.getData() + "," + adjustBright.getData() + "]}"
+
+        with open(self.outputAdjustDataPath, "w") as f:
+            print(outputAdjustData)
+            f.write(outputAdjustData)
+
+    def unInit(self):
+        cap.release()
+        cv2.destroyAllWindows()
+
 
 
 if __name__ == '__main__':
