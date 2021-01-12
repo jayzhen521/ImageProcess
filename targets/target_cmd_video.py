@@ -16,11 +16,13 @@ import adjustbright
 import localhisteq
 import VideoControl
 import VideoCapture
+import guidefilter
 from VideoStatus import VideoStatus
 
 # output variables
 # outputAdjustData, outputAdjustDataPath
 # outputVideoData, outputVideoDataPath
+
 
 class ImageEnhancement(Cmd):
     intro = '''====Image enhancement, designed by "Searching Center, Energysh"====
@@ -44,6 +46,7 @@ class ImageEnhancement(Cmd):
         self.usmRunner = None
         self.vibranceRunner = None
         self.adjustBright = None
+        self.guideFilter = None
 
         self.windowName = "AdjustWindow"
 
@@ -59,7 +62,7 @@ class ImageEnhancement(Cmd):
         self.parameterOperation(argv)
 
         self.adjusterInit()
-        
+
         self.adjustWindowSetting()
 
         self.trackbarSetting()
@@ -67,17 +70,18 @@ class ImageEnhancement(Cmd):
         self.videoOutputSetting()
 
         self.loopRun()
-    
+
         self.videoOutput()
 
         self.unInit()
 
     # 锐化、饱和度、亮度调节对象
     def adjusterInit(self):
-        
+
         self.usmRunner = usm.unsharpenmask()
         self.vibranceRunner = vibrance.vibrance()
         self.adjustBright = adjustbright.adjustbright()
+        self.guideFilter = guidefilter.guidefilter()
 
         # 读文件，如果存在的话
         if os.path.exists(self.outputAdjustDataPath):
@@ -99,7 +103,8 @@ class ImageEnhancement(Cmd):
                             # print(d)
                         elif key == "vibrance":
                             d = adjustItem[key]
-                            self.vibranceRunner.set_ori_intensity(d["intensity"])
+                            self.vibranceRunner.set_ori_intensity(
+                                d["intensity"])
                             print(d["intensity"])
                             # self.vibranceRunner = vibrance.vibrance(d)
                             # print(d)
@@ -111,14 +116,16 @@ class ImageEnhancement(Cmd):
                             # print(d)
                             # self.adjustBright = adjustbright.adjustbright(d)
                             # print(self.addjustBright.get_delta())
-
+                        elif key == "guidefilter":
+                            d = adjustItem[key]
+                            self.guideFilter.set_ksize(d["ksize"])
+                            self.guideFilter.set_eps(d["eps"])
 
     def adjustWindowSetting(self):
         cv2.namedWindow(self.windowName)
         cv2.resizeWindow(self.windowName, (400, 512))
         cv2.imshow(self.windowName, np.zeros((10, 512, 3), np.uint8))
-        
-            
+
     def parameterOperation(self, argv):
 
         parameters = argv.split(' ')
@@ -138,7 +145,6 @@ class ImageEnhancement(Cmd):
                 self.videoControl.set_videoStatus(VideoStatus['Playing'].value)
             elif parameters[2] == "Pause":
                 self.videoControl.set_videoStatus(VideoStatus['Paused'].value)
-            
 
     def do_exit(self, arg):
         'Stop run'
@@ -150,21 +156,27 @@ class ImageEnhancement(Cmd):
     def trackbarSetting(self):
         # trackbar设定
         cv2.createTrackbar("vibrance", self.windowName,
-                   self.vibranceRunner.get_factor(), 100, self.vibranceRunner.set_factor)
+                           self.vibranceRunner.get_factor(), 100, self.vibranceRunner.set_factor)
         cv2.createTrackbar("usm::ksize", self.windowName,
-                        self.usmRunner.get_ksize(), 25, self.usmRunner.set_ksize)
+                           self.usmRunner.get_ksize(), 25, self.usmRunner.set_ksize)
         cv2.createTrackbar("usm::weight", self.windowName,
-                        self.usmRunner.get_weight(), 100, self.usmRunner.set_weight)
+                           self.usmRunner.get_weight(), 100, self.usmRunner.set_weight)
         cv2.createTrackbar("bright", self.windowName,
-                        self.adjustBright.get_delta(), 50, self.adjustBright.set_delta)
+                           self.adjustBright.get_delta(), 50, self.adjustBright.set_delta)
         cv2.createTrackbar("frame::frameControl", self.windowName,
-                        self.videoControl.get_videoStatus(), 2, self.videoControl.set_videoStatus)
+                           self.videoControl.get_videoStatus(), 2, self.videoControl.set_videoStatus)
+        cv2.createTrackbar("guide::ksize", self.windowName,
+                           self.guideFilter.get_ksize(), 25, self.guideFilter.set_ksize)
+        cv2.createTrackbar("guide::eps", self.windowName,
+                           self.guideFilter.get_eps(), 100, self.guideFilter.set_eps)
 
     def videoOutputSetting(self):
         print(self.outputVideoDataPath)
-        print((self.videoCapture.get_size()[0], self.videoCapture.get_size()[1]))
+        print((self.videoCapture.get_size()[
+              0], self.videoCapture.get_size()[1]))
         self.videoWriter = cv2.VideoWriter(
-            self.outputVideoDataPath, cv2.VideoWriter_fourcc('I', '4', '2', '0'),
+            self.outputVideoDataPath, cv2.VideoWriter_fourcc(
+                'I', '4', '2', '0'),
             self.videoCapture.get_fps(), (self.videoCapture.get_size()[0] * 2, self.videoCapture.get_size()[1]))
 
     def loopRun(self):
@@ -172,8 +184,10 @@ class ImageEnhancement(Cmd):
         ref, frame = self.videoCapture.read()
 
         while True:
+            # 去噪
+            bgr_image = self.guideFilter.doBlur(frame)
             # 加亮
-            bgr_image = self.adjustBright.do_adjust(frame)
+            bgr_image = self.adjustBright.do_adjust(bgr_image)
             # 锐化
             bgr_image = self.usmRunner.do_usm(bgr_image)
             # 自然饱和度
@@ -189,8 +203,6 @@ class ImageEnhancement(Cmd):
             self.videoWriter.write(htich)
 
             cv2.imshow("image", bgr_image)
-
-            
 
             if(cv2.waitKey(1) & 0xFF == ord(' ')):
                 cv2.waitKey(0)
@@ -208,9 +220,9 @@ class ImageEnhancement(Cmd):
             else:
                 continue
 
-
     def videoOutput(self):
-        outputAdjustData = "{\"" + self.outputAdjustDataPath + "\": [" + self.usmRunner.getData() + "," + self.vibranceRunner.getData() + "," + self.adjustBright.getData() + "]}"
+        outputAdjustData = "{\"" + self.outputAdjustDataPath + "\": [" + self.usmRunner.getData(
+        ) + "," + self.vibranceRunner.getData() + "," + self.adjustBright.getData() + "," + self.guideFilter.getData() + "]}"
 
         with open(self.outputAdjustDataPath, "w") as f:
             print(outputAdjustData)
@@ -219,7 +231,6 @@ class ImageEnhancement(Cmd):
     def unInit(self):
         self.videoCapture.release()
         cv2.destroyAllWindows()
-
 
 
 if __name__ == '__main__':
