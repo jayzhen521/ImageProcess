@@ -18,7 +18,9 @@ class unsharpenmask(rw):
         self.weight = weight
 
     def set_ksize(self, ksize):
-        self.ksize = max(3, (ksize / 2) * 2 + 1)
+        print(ksize)
+        self.ksize = max(3, (ksize // 2) * 2 + 1)
+        print(self.ksize)
 
     def set_sigma(self, sigma):
         self.sigma = max(1, sigma)

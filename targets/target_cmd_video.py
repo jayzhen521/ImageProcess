@@ -158,7 +158,7 @@ class ImageEnhancement(Cmd):
         cv2.createTrackbar("bright", self.windowName,
                         self.adjustBright.get_delta(), 50, self.adjustBright.set_delta)
         cv2.createTrackbar("frame::frameControl", self.windowName,
-                        self.videoControl.get_videoStatus(), 1, self.videoControl.set_videoStatus)
+                        self.videoControl.get_videoStatus(), 2, self.videoControl.set_videoStatus)
 
     def videoOutputSetting(self):
         if self.videoCapture:
@@ -199,7 +199,10 @@ class ImageEnhancement(Cmd):
             if self.videoCapture.isOpened() and self.videoControl.get_videoStatus() == VideoStatus.Playing.value:
                 ref, frame = self.videoCapture.read()
                 if not ref:
+                    self.videoControl.set_videoStatus(VideoStatus.Quit.value)
                     break
+            if self.videoControl.get_videoStatus() == VideoStatus.Quit.value:
+                break
             else:
                 continue
 
