@@ -6,6 +6,9 @@ class vibrance(rw):
     def __init__(self):
         self.intensity = 0.0
 
+    def set_ori_intensity(self, intensity):
+        self.intensity = intensity
+
     def set_factor(self, factor):
         self.intensity = (factor - 50) / 25.0
 

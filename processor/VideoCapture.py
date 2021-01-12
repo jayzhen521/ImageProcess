@@ -21,3 +21,6 @@ class VideoCapture:
     def read(self):
         ret, frame = self.cap.read()
         return (ret, frame)
+
+    def release(self):
+        self.cap.release()

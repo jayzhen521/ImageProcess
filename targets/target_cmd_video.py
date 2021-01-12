@@ -79,6 +79,39 @@ class ImageEnhancement(Cmd):
         self.vibranceRunner = vibrance.vibrance()
         self.adjustBright = adjustbright.adjustbright()
 
+        # 读文件，如果存在的话
+        if os.path.exists(self.outputAdjustDataPath):
+            with open(self.outputAdjustDataPath, "r") as f:
+                self.outputAdjustData = f.read()
+                adjustDataDict = json.loads(self.outputAdjustData)
+                # print(adjustDataDict)
+                for adjustItem in adjustDataDict[self.outputAdjustDataPath]:
+                    for key in adjustItem:
+                        if key == "unsharpenmask":
+                            d = adjustItem[key]
+                            self.usmRunner.set_ori_ksize(d["ksize"])
+                            self.usmRunner.set_ori_sigma(d["sigma"])
+                            self.usmRunner.set_ori_weight(d["weight"])
+                            print(d["ksize"])
+                            print(d["sigma"])
+                            print(d["weight"])
+                            # self.usmRunner = usm.unsharpenmask(d)
+                            # print(d)
+                        elif key == "vibrance":
+                            d = adjustItem[key]
+                            self.vibranceRunner.set_ori_intensity(d["intensity"])
+                            print(d["intensity"])
+                            # self.vibranceRunner = vibrance.vibrance(d)
+                            # print(d)
+                            # print(self.vibranceRunner.get_intensity())
+                        elif key == "adjustbright":
+                            d = adjustItem[key]
+                            self.adjustBright.set_ori_delta(d["delta"])
+                            print(d["delta"])
+                            # print(d)
+                            # self.adjustBright = adjustbright.adjustbright(d)
+                            # print(self.addjustBright.get_delta())
+
 
     def adjustWindowSetting(self):
         cv2.namedWindow(self.windowName)
@@ -91,13 +124,13 @@ class ImageEnhancement(Cmd):
         parameters = argv.split(' ')
 
         if parameters and parameters[0] != "exit" and len(parameters) == 3:
-            filePath = parameters[0]
+            self.filePath = parameters[0]
 
-            self.outputVideoDataPath = filePath + ".mp4"
+            self.outputVideoDataPath = self.filePath + ".mp4"
 
-            self.videoCapture = VideoCapture.VideoCapture(filePath)
+            self.videoCapture = VideoCapture.VideoCapture(self.filePath)
             # 调节输出设定
-            outputAdjustDataPath = "adjustData/" + parameters[1] + ".txt"
+            self.outputAdjustDataPath = "adjustData/" + parameters[1] + ".txt"
 
             self.videoControl = VideoControl.VideoControl()
 
@@ -172,14 +205,14 @@ class ImageEnhancement(Cmd):
 
 
     def videoOutput(self):
-        outputAdjustData = "{\"" + self.outputAdjustDataPath + "\": [" + self.usmRunner.getData() + "," + self.claheRunner.getData() + "," + self.vibranceRunner.getData() + "," + self.adjustBright.getData() + "]}"
+        outputAdjustData = "{\"" + self.outputAdjustDataPath + "\": [" + self.usmRunner.getData() + "," + self.vibranceRunner.getData() + "," + self.adjustBright.getData() + "]}"
 
         with open(self.outputAdjustDataPath, "w") as f:
             print(outputAdjustData)
             f.write(outputAdjustData)
 
     def unInit(self):
-        cap.release()
+        self.videoCapture.release()
         cv2.destroyAllWindows()
 
 

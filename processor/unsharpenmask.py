@@ -8,6 +8,15 @@ class unsharpenmask(rw):
         self.sigma = 0
         self.weight = 0.0
 
+    def set_ori_ksize(self, ksize):
+        self.ksize = ksize
+
+    def set_ori_sigma(self, sigma):
+        self.sigma = sigma
+
+    def set_ori_weight(self, weight):
+        self.weight = weight
+
     def set_ksize(self, ksize):
         self.ksize = max(3, (ksize / 2) * 2 + 1)
 

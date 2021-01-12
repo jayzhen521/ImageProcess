@@ -7,6 +7,10 @@ class adjustbright(rw):
     def __init__(self):
         self.delta = 0.0
 
+    
+    def set_ori_delta(self, delta):
+        self.delta = delta
+
     def get_delta(self):
         return int(self.delta * 100)
 
