@@ -126,7 +126,7 @@ class ImageEnhancement(Cmd):
         if parameters and parameters[0] != "exit" and len(parameters) == 3:
             self.filePath = parameters[0]
 
-            self.outputVideoDataPath = self.filePath + ".mp4"
+            self.outputVideoDataPath = self.filePath + ".avi"
 
             self.videoCapture = VideoCapture.VideoCapture(self.filePath)
             # 调节输出设定
@@ -161,8 +161,8 @@ class ImageEnhancement(Cmd):
                         self.videoControl.get_videoStatus(), 2, self.videoControl.set_videoStatus)
 
     def videoOutputSetting(self):
-        if self.videoCapture:
-            print(self.videoCapture.get_size())
+        print(self.outputVideoDataPath)
+        print((self.videoCapture.get_size()[0], self.videoCapture.get_size()[1]))
         self.videoWriter = cv2.VideoWriter(
             self.outputVideoDataPath, cv2.VideoWriter_fourcc('I', '4', '2', '0'),
             self.videoCapture.get_fps(), (self.videoCapture.get_size()[0] * 2, self.videoCapture.get_size()[1]))
@@ -186,9 +186,11 @@ class ImageEnhancement(Cmd):
             cv2.putText(htich, "enhance image", (frame.shape[1] + 10, 30),
                         cv2.FONT_ITALIC, 1.0, (0, 0, 255), 2)
 
-            cv2.imshow("image", htich)
-
             self.videoWriter.write(htich)
+
+            cv2.imshow("image", bgr_image)
+
+            
 
             if(cv2.waitKey(1) & 0xFF == ord(' ')):
                 cv2.waitKey(0)

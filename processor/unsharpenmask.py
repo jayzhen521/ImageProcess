@@ -26,7 +26,7 @@ class unsharpenmask(rw):
         self.sigma = max(1, sigma)
 
     def set_weight(self, weight):
-        self.weight = weight / 25.0
+        self.weight = weight / 10.0
 
     def get_ksize(self):
         return int(self.ksize)
@@ -35,7 +35,7 @@ class unsharpenmask(rw):
         return self.sigma
 
     def get_weight(self):
-        return int(self.weight * 25.0)
+        return int(self.weight * 10.0)
 
     def do_usm(self, rgb):
         blur = cv2.GaussianBlur(
