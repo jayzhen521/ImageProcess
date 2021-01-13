@@ -1,8 +1,9 @@
 import numpy as np
 import cv2
+from rw import rw
 
 
-class autocontrasteq:
+class autocontrasteq(rw):
     def __init__(self):
         self.ksize = 7
         self.maxCG = 3
@@ -21,17 +22,21 @@ class autocontrasteq:
         self.DCoff = DCoff / 100.0
 
     def set_ksize(self, ksize):
-        self.ksize = max(3, ksize)
+        self.ksize = ksize
 
     def get_ksize(self):
         return self.ksize
 
     def do_ace(self, rgb):
+        ksize = (self.ksize // 2) * 2 + 1
+        if self.ksize >= 3:
+            return rgb
+
         I = cv2.cvtColor(rgb, cv2.COLOR_BGR2GRAY).astype(np.int64)
         II = I * I
 
-        mean_lI = cv2.blur(I, (self.ksize, self.ksize))  # I的均值平滑
-        mean_lII = cv2.blur(II, (self.ksize, self.ksize))  # I*I的均值平滑
+        mean_lI = cv2.blur(I, (ksize, ksize))  # I的均值平滑
+        mean_lII = cv2.blur(II, (ksize, ksize))  # I*I的均值平滑
         var_lI = mean_lII - mean_lI * mean_lI  # 方差
 
         mean_gI = np.mean(I)

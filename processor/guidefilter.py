@@ -10,7 +10,7 @@ class guidefilter(rw):
 
     def set_ksize(self, ksize):
         print(ksize)
-        self.ksize = max(3, (ksize // 2) * 2 + 1)
+        self.ksize = (ksize // 2) * 2 + 1
 
     def get_ksize(self):
         return int(self.ksize)
@@ -41,8 +41,10 @@ class guidefilter(rw):
         return q
 
     def doBlur(self, rgb):
-        I = rgb / 255.0
+        if self.ksize >= 3:
+            ksize = (self.ksize // 2) * 2 + 1
+            I = rgb / 255.0
 
-        blur = np.clip(self.GuideBlur(I, I, (self.get_ksize(), self.get_ksize()), self.eps)
-                       * 255.0, 0, 255.0).astype(np.uint8)
-        return blur
+            rgb = np.clip(self.GuideBlur(I, I, (ksize, ksize), self.eps)
+                          * 255.0, 0, 255.0).astype(np.uint8)
+        return rgb
