@@ -29,7 +29,7 @@ class autocontrasteq(rw):
 
     def do_ace(self, rgb):
         ksize = (self.ksize // 2) * 2 + 1
-        if self.ksize >= 3:
+        if self.ksize < 3:
             return rgb
 
         I = cv2.cvtColor(rgb, cv2.COLOR_BGR2GRAY).astype(np.int64)

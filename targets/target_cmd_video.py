@@ -140,7 +140,7 @@ class ImageEnhancement(Cmd):
         if parameters and parameters[0] != "exit" and len(parameters) == 3:
             self.filePath = parameters[0]
 
-            self.outputVideoDataPath = self.filePath + ".avi"
+            self.outputVideoDataPath = self.filePath + ".mp4"
 
             self.videoCapture = VideoCapture.VideoCapture(self.filePath)
             # 调节输出设定
@@ -188,8 +188,7 @@ class ImageEnhancement(Cmd):
         print((self.videoCapture.get_size()[
               0], self.videoCapture.get_size()[1]))
         self.videoWriter = cv2.VideoWriter(
-            self.outputVideoDataPath, cv2.VideoWriter_fourcc(
-                'I', '4', '2', '0'),
+            self.outputVideoDataPath, cv2.VideoWriter_fourcc(*'MJPG'),
             self.videoCapture.get_fps(), (self.videoCapture.get_size()[0] * 2, self.videoCapture.get_size()[1]))
 
     def loopRun(self):
