@@ -13,7 +13,7 @@ import adapthisteq as ahe
 import unsharpenmask as usm
 import vibrance as vibrance
 import adjustbright
-import localhisteq
+import autocontrasteq
 import VideoControl
 import VideoCapture
 import guidefilter

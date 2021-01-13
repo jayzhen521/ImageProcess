@@ -13,7 +13,7 @@ import unsharpenmask as usm
 import vibrance as vibrance
 import framecontrol
 import adjustbright
-import localhisteq
+import autocontrasteq
 
 use_adapthisteq = False
 
@@ -22,7 +22,7 @@ claheRunner = ahe.adapthisteq()
 vibranceRunner = vibrance.vibrance()
 frameControl = framecontrol.framecontrol()
 adjustBright = adjustbright.adjustbright()
-localhisteq = localhisteq.localhisteq()
+autoContrastEQ = autocontrasteq.autocontrasteq()
 
 windowName = "setting"
 cv2.namedWindow(windowName)
@@ -71,7 +71,6 @@ windowName = "setting"
 cv2.namedWindow(windowName)
 
 
-
 frameControl.set_ifGetNextFrame(if_getNextFrame)
 
 cv2.createTrackbar("vibrance", windowName,
@@ -88,12 +87,12 @@ if use_adapthisteq:
     cv2.createTrackbar("clahe::tilesColumn", windowName,
                        claheRunner.get_tilesColumn(), 16, claheRunner.set_tilesColumn)
 else:
-    cv2.createTrackbar("localhist::maxCG", windowName,
-                       localhisteq.get_maxCG(), 100, localhisteq.set_maxCG)
-    cv2.createTrackbar("localhist::dcoff", windowName,
-                       localhisteq.get_DCoff(), 100, localhisteq.set_DCoff)
-    cv2.createTrackbar("localhist::ksize", windowName,
-                       localhisteq.get_ksize(), 16, localhisteq.set_ksize)
+    cv2.createTrackbar("ace::maxCG", windowName,
+                       autoContrastEQ.get_maxCG(), 100, autoContrastEQ.set_maxCG)
+    cv2.createTrackbar("ace::dcoff", windowName,
+                       autoContrastEQ.get_DCoff(), 100, autoContrastEQ.set_DCoff)
+    cv2.createTrackbar("ace::ksize", windowName,
+                       autoContrastEQ.get_ksize(), 16, autoContrastEQ.set_ksize)
 
 cv2.createTrackbar("bright", windowName,
                    adjustBright.get_delta(), 50, adjustBright.set_delta)
@@ -130,7 +129,7 @@ while(cap.isOpened()):
         # 自适应直方图处理
         bgr_image = claheRunner.do_vplane_clahe(bgr_image)
     else:
-        bgr_image = localhisteq.do_localhisteq(bgr_image)
+        bgr_image = autoContrastEQ.do_ace(bgr_image)
 
     # 自然饱和度
     bgr_image = vibranceRunner.do_vibrance(bgr_image)
@@ -159,7 +158,8 @@ while(cap.isOpened()):
     if cv2.waitKey(20) & 0xFF == ord('q'):
         break
 
-adjustData = "{\"" + adjust_name + "\": [" + usmRunner.getData() + "," + claheRunner.getData() + "," + vibranceRunner.getData() + "," + adjustBright.getData() + "]}"
+adjustData = "{\"" + adjust_name + "\": [" + usmRunner.getData() + "," + claheRunner.getData(
+) + "," + vibranceRunner.getData() + "," + adjustBright.getData() + "]}"
 
 with open("adjustData/" + adjust_name + ".txt", "w") as f:
     f.write(adjustData)

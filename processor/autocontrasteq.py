@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 
 
-class localhisteq:
+class autocontrasteq:
     def __init__(self):
         self.ksize = 7
         self.maxCG = 3
@@ -26,7 +26,7 @@ class localhisteq:
     def get_ksize(self):
         return self.ksize
 
-    def do_localhisteq(self, rgb):
+    def do_ace(self, rgb):
         I = cv2.cvtColor(rgb, cv2.COLOR_BGR2GRAY).astype(np.int64)
         II = I * I
 
