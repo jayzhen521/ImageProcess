@@ -266,6 +266,7 @@ class ImageEnhancement(Cmd):
             f.write(outputAdjustData)
 
     def unInit(self):
+        self.videoWriter.release()
         self.videoCapture.release()
         cv2.destroyAllWindows()
 
