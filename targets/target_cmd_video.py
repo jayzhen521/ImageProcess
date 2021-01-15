@@ -17,6 +17,7 @@ import autocontrasteq
 import VideoControl
 import VideoCapture
 import guidefilter
+import BrightnessContrast
 from VideoStatus import VideoStatus
 
 # output variables
@@ -48,6 +49,7 @@ class ImageEnhancement(Cmd):
         self.adjustBright = None
         self.guideFilter = None
         self.autoContrastEQ = None
+        self.brightnessContrast = None
 
         self.windowName = "AdjustWindow"
 
@@ -84,6 +86,7 @@ class ImageEnhancement(Cmd):
         self.adjustBright = adjustbright.adjustbright()
         self.guideFilter = guidefilter.guidefilter()
         self.autoContrastEQ = autocontrasteq.autocontrasteq()
+        self.brightnessContrast = BrightnessContrast.BrightnessContrast()
 
         # 读文件，如果存在的话
         if os.path.exists(self.outputAdjustDataPath):
@@ -127,6 +130,11 @@ class ImageEnhancement(Cmd):
                             self.autoContrastEQ.set_ksize(d["ksize"])
                             self.autoContrastEQ.set_maxCG(d["maxCG"])
                             self.autoContrastEQ.set_DCoff(d["DCoff"])
+                        elif key == "BrightnessContrast":
+                            d = adjustItem[key]
+                            self.brightnessContrast.set_brightness(d["brightness"])
+                            self.brightnessContrast.set_contrast(d["contrast"])
+                        
 
     def adjustWindowSetting(self):
         cv2.namedWindow(self.windowName)
@@ -182,6 +190,10 @@ class ImageEnhancement(Cmd):
                            self.autoContrastEQ.get_DCoff(), 100, self.autoContrastEQ.set_DCoff)
         cv2.createTrackbar("ace::ksize", self.windowName,
                            self.autoContrastEQ.get_ksize(), 16, self.autoContrastEQ.set_ksize)
+        cv2.createTrackbar("XBright", self.windowName,
+                           self.brightnessContrast.get_brightness(), 255, self.brightnessContrast.set_brightness)
+        cv2.createTrackbar("XContrast", self.windowName,
+                           self.brightnessContrast.get_contrast(), 127, self.brightnessContrast.set_contrast)
 
     def videoOutputSetting(self):
         print(self.outputVideoDataPath)
@@ -196,16 +208,21 @@ class ImageEnhancement(Cmd):
         ref, frame = self.videoCapture.read()
 
         while True:
+            bgr_image = frame
             # 去噪
-            bgr_image = self.guideFilter.doBlur(frame)
+            # bgr_image = self.guideFilter.doBlur(bgr_image)
             # ACE
-            bgr_image = self.autoContrastEQ.do_ace(bgr_image)
+            # bgr_image = self.autoContrastEQ.do_ace(bgr_image)
             # 加亮
-            bgr_image = self.adjustBright.do_adjust(bgr_image)
+            # bgr_image = self.adjustBright.do_adjust(bgr_image)
             # 锐化
             bgr_image = self.usmRunner.do_usm(bgr_image)
             # 自然饱和度
             bgr_image = self.vibranceRunner.do_vibrance(bgr_image)
+            # 亮度
+            bgr_image = self.brightnessContrast.do_brightness(bgr_image)
+            # 对比度
+            bgr_image = self.brightnessContrast.do_contrast(bgr_image)
 
             # show
             htich = np.hstack((frame, bgr_image))
@@ -236,10 +253,13 @@ class ImageEnhancement(Cmd):
 
     def videoOutput(self):
         outputAdjustData = "{\"" + self.outputAdjustDataPath + \
-            "\": [" + self.usmRunner.getData()
-        + "," + self.vibranceRunner.getData() + "," + self.adjustBright.getData() + \
-            "," + self.guideFilter.getData()
-        + "," + self.autoContrastEQ.getData() + "]}"
+            "\": [" + self.usmRunner.getData() \
+            + "," + self.vibranceRunner.getData() \
+            + "," + self.adjustBright.getData() \
+            + "," + self.guideFilter.getData() \
+            + "," + self.brightnessContrast.getData() \
+            + "," + self.autoContrastEQ.getData() \
+            + "]}"
 
         with open(self.outputAdjustDataPath, "w") as f:
             print(outputAdjustData)
