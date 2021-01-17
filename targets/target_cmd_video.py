@@ -33,7 +33,7 @@ class ImageEnhancement(Cmd):
 
         self.videoControl = None
 
-        self.adjusters = []
+        self.adjusters = None
 
         self.windowName = "AdjustWindow"
 
@@ -65,7 +65,9 @@ class ImageEnhancement(Cmd):
     # 锐化、饱和度、亮度调节对象
     def adjusterInit(self):
 
-        print("-------" + self.outputAdjustDataPath)
+        # print("-------" + self.outputAdjustDataPath)
+
+        self.adjusters = []
 
         # 读文件，如果存在的话
         if os.path.exists(self.outputAdjustDataPath):
@@ -77,12 +79,13 @@ class ImageEnhancement(Cmd):
                 for adjustItem in adjustDataDict[self.outputAdjustDataPath]:
                     for key in adjustItem:
                         d = adjustItem[key]
-                        
                         self.adjusters.append(AdjusterFactory.createAdjuster(key, d))
 
         else:
+            len(self.adjusters)
             for adjusterName in AdjusterFactory.defaultAdjustersNames:
                 self.adjusters.append(AdjusterFactory.createAdjuster(adjusterName))
+            # print(len(self.adjusters))
 
     def adjustWindowSetting(self):
         cv2.namedWindow(self.windowName)
@@ -182,7 +185,8 @@ class ImageEnhancement(Cmd):
         self.videoWriter.release()
         self.videoCapture.release()
         cv2.destroyAllWindows()
-
+        # 不需要clear,新任务复制为[]
+        # self.adjusters.clear()
 
 if __name__ == '__main__':
     ImageEnhancement().cmdloop()
