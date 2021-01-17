@@ -50,3 +50,15 @@ class BrightnessContrast(rw):
             buf = bgr.copy()
 
         return buf
+
+    def createTrackerBar(self, windowName):
+        # cv2.createTrackbar("Bright", windowName,
+        #         self.get_brightness(), 255, self.set_brightness)
+        cv2.createTrackbar("Contrast", windowName,
+                self.get_contrast(), 127, self.set_contrast)
+
+    def do_it(self, bgr):
+        return BrightnessContrast.do_contrast(self, bgr)
+
+    def __str__(self):
+        return "BrightnessContrast"

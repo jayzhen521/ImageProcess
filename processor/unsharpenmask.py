@@ -42,3 +42,15 @@ class unsharpenmask(rw):
         blur = cv2.GaussianBlur(
             rgb, (self.get_ksize(), self.get_ksize()), self.sigma, self.sigma)
         return cv2.addWeighted(rgb, 1.0 + self.weight, blur, -self.weight, 0)
+
+    def createTrackerBar(self, windowName):
+        cv2.createTrackbar("usm::ksize", windowName,
+                           self.get_ksize(), 25, self.set_ksize)
+        cv2.createTrackbar("usm::weight", windowName,
+                           self.get_weight(), 100, self.set_weight)
+
+    def do_it(self, bgr):
+        return unsharpenmask.do_usm(self, bgr)
+
+    def __str__(self):
+        return "unsharpenmask"

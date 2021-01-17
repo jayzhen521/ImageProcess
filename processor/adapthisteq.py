@@ -35,3 +35,12 @@ class adapthisteq(rw):
         hsv = cv2.cvtColor(rgb, cv2.COLOR_BGR2HSV)
         hsv[:, :, 2] = self.clahe.apply(hsv[:, :, 2])
         return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+    def createTrackerBar(self, windowName):
+        pass
+
+    def __str__(self):
+        return "adapthisteq"
+
+    def do_it(self, bgr):
+        return adapthisteq.do_vplane_clahe(self, bgr)

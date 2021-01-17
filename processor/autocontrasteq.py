@@ -52,3 +52,17 @@ class autocontrasteq(rw):
         coff = newI / np.maximum(0.01, I)
 
         return np.clip(rgb * np.stack((coff, coff, coff), -1), 0, 255).astype(np.uint8)
+
+    def createTrackerBar(self, windowName):
+        cv2.createTrackbar("ace::maxCG", windowName,
+                           self.get_maxCG(), 100, self.set_maxCG)
+        cv2.createTrackbar("ace::dcoff", windowName,
+                           self.get_DCoff(), 100, self.set_DCoff)
+        cv2.createTrackbar("ace::ksize", windowName,
+                           self.get_ksize(), 16, self.set_ksize)
+
+    def do_it(self, bgr):
+        return autocontrasteq.do_ace(self, bgr)
+
+    def __str__(self):
+        return "autocontrasteq"

@@ -39,3 +39,13 @@ class vibrance(rw):
 
         saturation = np.stack((fb, fg, fr), -1)
         return saturation
+
+    def createTrackerBar(self, windowName):
+        cv2.createTrackbar("vibrance", windowName,
+            self.get_factor(), 100, self.set_factor)
+
+    def do_it(self, bgr):
+        return vibrance.do_vibrance(self, bgr)
+
+    def __str__(self):
+        return "vibrance"

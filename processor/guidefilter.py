@@ -40,7 +40,7 @@ class guidefilter(rw):
         q = mean_a * I + mean_b
         return q
 
-    def doBlur(self, rgb):
+    def do_blur(self, rgb):
         if self.ksize >= 3:
             ksize = (self.ksize // 2) * 2 + 1
             I = rgb / 255.0
@@ -48,3 +48,15 @@ class guidefilter(rw):
             rgb = np.clip(self.GuideBlur(I, I, (ksize, ksize), self.eps)
                           * 255.0, 0, 255.0).astype(np.uint8)
         return rgb
+
+    def createTrackerBar(self, windowName):
+        cv2.createTrackbar("guide::ksize", windowName,
+                           self.get_ksize(), 25, self.set_ksize)
+        cv2.createTrackbar("guide::eps", windowName,
+                           self.get_eps(), 100, self.set_eps)
+
+    def do_it(self, bgr):
+        return guidefilter.do_blur(self, bgr)
+
+    def __str__(self):
+        return "guidefilter"
