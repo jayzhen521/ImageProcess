@@ -96,21 +96,19 @@ class ImageEnhancement(Cmd):
 
         parameters = argv.split(' ')
 
-        if parameters and parameters[0] != "exit" and len(parameters) == 3:
+        if parameters and parameters[0] != "exit" and len(parameters) == 1:
             self.filePath = parameters[0]
 
             self.outputVideoDataPath = self.filePath + ".mp4"
 
             self.videoCapture = VideoCapture(self.filePath)
             # 调节输出设定
-            self.outputAdjustDataPath = "adjustData/" + parameters[1] + ".txt"
+            self.outputAdjustDataPath = "adjustData/std2.txt"
 
             self.videoControl = VideoControl()
 
-            if parameters[2] == "Play":
-                self.videoControl.set_videoStatus(VideoStatus['Playing'].value)
-            elif parameters[2] == "Pause":
-                self.videoControl.set_videoStatus(VideoStatus['Paused'].value)
+            self.videoControl.set_videoStatus(VideoStatus['Playing'].value)
+
 
     def do_exit(self, arg):
         'Stop run'
@@ -120,12 +118,13 @@ class ImageEnhancement(Cmd):
 
     # trackball control
     def trackbarSetting(self):
-        # trackbar设定
-        for adjuster in self.adjusters:
-            # print(type(adjuster))
-            adjuster.createTrackerBar(self.windowName)
+        # # trackbar设定
+        # for adjuster in self.adjusters:
+        #     # print(type(adjuster))
+        #     adjuster.createTrackerBar(self.windowName)
 
-        self.videoControl.createTrackerBar(self.windowName)
+        # self.videoControl.createTrackerBar(self.windowName)
+        pass
 
     def videoOutputSetting(self):
         # print(self.outputVideoDataPath)
@@ -154,7 +153,7 @@ class ImageEnhancement(Cmd):
 
             self.videoWriter.write(htich)
 
-            cv2.imshow("image", bgr_image)
+            # cv2.imshow("image", bgr_image)
 
             if(cv2.waitKey(1) & 0xFF == ord(' ')):
                 cv2.waitKey(0)
