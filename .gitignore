@@ -128,5 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# adjustData
+# experiment, videos, images
 experiment/
+videos/
+images/

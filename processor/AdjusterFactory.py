@@ -5,13 +5,17 @@ from BrightnessContrast import BrightnessContrast
 from guidefilter import guidefilter
 from unsharpenmask import unsharpenmask
 from vibrance import vibrance
+from HSVAdjuster import HSVAdjuster
 from AutoBrightnessContrast import AutoBrightnessContrast
 
 class AdjusterFactory():
 
-    # defaultAdjustersNames = ["vibrance", "BrightnessContrast", "unsharpenmask"]
+    defaultAdjustersNames = ["vibrance", "BrightnessContrast", "unsharpenmask"]
 
-    defaultAdjustersNames = ["vibrance", "AutoBrightnessContrast", "unsharpenmask"]
+    # defaultAdjustersNames = ["AutoBrightnessContrast", "unsharpenmask"]
+    
+    # defaultAdjustersNames = ["HSVAdjuster", "BrightnessContrast", "unsharpenmask"]
+
 
     @staticmethod
     def createAdjuster(adjusterName, inDict = []):
@@ -32,6 +36,8 @@ class AdjusterFactory():
             adjuster = vibrance()
         elif adjusterName == "AutoBrightnessContrast":
             adjuster = AutoBrightnessContrast()
+        elif adjusterName == "HSVAdjuster":
+            adjuster = HSVAdjuster()
 
         if adjuster and inDict:
             adjuster.__dict__ = inDict

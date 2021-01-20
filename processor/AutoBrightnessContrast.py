@@ -1,6 +1,12 @@
 import numpy as np
 import cv2
 from rw import rw
+# 算法来自于
+# https://stackoverflow.com/questions/56905592/automatic-contrast-and-brightness-adjustment-of-a-color-photo-of-a-sheet-of-pape/56909036
+# 由于需要裁剪在直方图两端低于阈值的图像，
+# 但视频存在接近阈值的图像或者噪点，
+# 导致最大、最小灰度区域范围不稳定，
+# 这样可能很容易造成视频帧间的整体颜色晃动。
 
 class AutoBrightnessContrast(rw):
     
