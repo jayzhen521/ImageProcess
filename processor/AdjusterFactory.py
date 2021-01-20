@@ -10,9 +10,9 @@ from AutoBrightnessContrast import AutoBrightnessContrast
 
 class AdjusterFactory():
 
-    defaultAdjustersNames = ["vibrance", "BrightnessContrast", "unsharpenmask"]
+    # defaultAdjustersNames = ["vibrance", "BrightnessContrast", "unsharpenmask"]
 
-    # defaultAdjustersNames = ["AutoBrightnessContrast", "unsharpenmask"]
+    defaultAdjustersNames = ["AutoBrightnessContrast", "unsharpenmask"]
     
     # defaultAdjustersNames = ["HSVAdjuster", "BrightnessContrast", "unsharpenmask"]
 

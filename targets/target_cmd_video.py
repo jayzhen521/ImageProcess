@@ -14,6 +14,8 @@ from VideoCapture import VideoCapture
 from VideoStatus import VideoStatus
 from AdjusterFactory import AdjusterFactory
 
+from Renderer import Renderer
+
 class ImageEnhancement(Cmd):
     intro = '''====Image enhancement, designed by "Searching Center, Energysh"====
     Type help or ? to list commands.
@@ -38,6 +40,8 @@ class ImageEnhancement(Cmd):
         self.windowName = "AdjustWindow"
 
         self.videoCapture = None
+
+        self.renderer = None
 
     def do_adjust(self, argv):
         '''input 3 parameter: filepath adjust_name video_status
@@ -68,7 +72,9 @@ class ImageEnhancement(Cmd):
         # print("-------" + self.outputAdjustDataPath)
 
         self.adjusters = []
+        self.renderer = Renderer()
 
+        print(self.outputAdjustDataPath)
         # 读文件，如果存在的话
         if os.path.exists(self.outputAdjustDataPath):
             with open(self.outputAdjustDataPath, "r") as f:
@@ -88,9 +94,8 @@ class ImageEnhancement(Cmd):
             # print(len(self.adjusters))
 
     def adjustWindowSetting(self):
-        cv2.namedWindow(self.windowName)
-        cv2.resizeWindow(self.windowName, (400, 512))
-        cv2.imshow(self.windowName, np.zeros((10, 512, 3), np.uint8))
+        cv2.namedWindow(self.windowName, cv2.WINDOW_NORMAL)
+        pass
 
     def parameterOperation(self, argv):
 
@@ -122,9 +127,8 @@ class ImageEnhancement(Cmd):
         # for adjuster in self.adjusters:
         #     # print(type(adjuster))
         #     adjuster.createTrackerBar(self.windowName)
-
-        # self.videoControl.createTrackerBar(self.windowName)
-        pass
+        self.renderer.createTrackerBar(self.windowName)
+        self.videoControl.createTrackerBar(self.windowName)
 
     def videoOutputSetting(self):
         # print(self.outputVideoDataPath)
@@ -138,22 +142,19 @@ class ImageEnhancement(Cmd):
 
         ref, frame = self.videoCapture.read()
 
+        height, width, _ = np.shape(frame)
+        middle = width // 2
+
+        # lasttime 
+
         while True:
             bgr_image = frame
 
-            for adjuster in self.adjusters:
-                bgr_image = adjuster.do_it(bgr_image)
+            resultImage = self.renderer.do_Rendering(bgr_image, self.adjusters)
 
-            # show
-            htich = np.hstack((frame, bgr_image))
-            cv2.putText(htich, "original image", (10, 30),
-                        cv2.FONT_ITALIC, 1.0, (0, 0, 255), 2)
-            cv2.putText(htich, "enhance image", (frame.shape[1] + 10, 30),
-                        cv2.FONT_ITALIC, 1.0, (0, 0, 255), 2)
+            self.videoWriter.write(resultImage)
 
-            self.videoWriter.write(htich)
-
-            # cv2.imshow("image", bgr_image)
+            cv2.imshow(self.windowName, resultImage)
 
             if(cv2.waitKey(1) & 0xFF == ord(' ')):
                 cv2.waitKey(0)
