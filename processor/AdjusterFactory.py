@@ -12,7 +12,7 @@ class AdjusterFactory():
 
     # defaultAdjustersNames = ["vibrance", "BrightnessContrast", "unsharpenmask"]
 
-    defaultAdjustersNames = ["AutoBrightnessContrast", "unsharpenmask"]
+    defaultAdjustersNames = ["BrightnessContrast", "unsharpenmask"]
     
     # defaultAdjustersNames = ["HSVAdjuster", "BrightnessContrast", "unsharpenmask"]
 
