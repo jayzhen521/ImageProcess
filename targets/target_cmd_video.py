@@ -30,6 +30,9 @@ class ImageEnhancement(Cmd):
         self.outputVideoData = None
         self.outputVideoDataPath = None
 
+        self.width = 0
+        self.height = 0
+
         self.videoWriter = None
 
         self.videoControl = None
@@ -42,7 +45,7 @@ class ImageEnhancement(Cmd):
 
         self.renderer = None
 
-    def do_adjust(self, argv):
+    def default(self, argv):
         '''input 3 parameter: filepath adjust_name video_status
             filepath,
             adjust name(snow_scene, forest_scene, asian, white, black... ),
@@ -93,7 +96,9 @@ class ImageEnhancement(Cmd):
             # print(len(self.adjusters))
 
     def adjustWindowSetting(self):
-        cv2.namedWindow(self.windowName, cv2.WINDOW_NORMAL)
+        cv2.namedWindow(self.windowName)
+        cv2.resizeWindow(self.windowName, self.width, 100)
+        cv2.moveWindow(self.windowName, 0, 0)
         pass
 
     def parameterOperation(self, argv):
@@ -106,6 +111,9 @@ class ImageEnhancement(Cmd):
             self.outputVideoDataPath = self.filePath + ".mp4"
 
             self.videoCapture = VideoCapture(self.filePath)
+
+            self.width, self.height = self.videoCapture.get_size()
+
             # 调节输出设定
             self.outputAdjustDataPath = "adjustData/std2.txt"
 
@@ -172,13 +180,14 @@ class ImageEnhancement(Cmd):
                 continue
 
     def videoOutput(self):
-        adjusterDataDict = []
+        # adjusterDataDict = []
 
-        for adjusterObj in self.adjusters:        
-            adjusterDataDict.append(adjusterObj.getData())
+        # for adjusterObj in self.adjusters:        
+        #     adjusterDataDict.append(adjusterObj.getData())
 
-        with open(self.outputAdjustDataPath, "w") as f:
-            f.write(json.dumps({self.outputAdjustDataPath: adjusterDataDict}))
+        # with open(self.outputAdjustDataPath, "w") as f:
+        #     f.write(json.dumps({self.outputAdjustDataPath: adjusterDataDict}))
+        pass
 
     def unInit(self):
         self.videoWriter.release()
