@@ -7,7 +7,6 @@ from collections import namedtuple
 
 import numpy as np
 import cv2
-import target_functions as tf
 
 from VideoControl import VideoControl
 from VideoCapture import VideoCapture
@@ -136,7 +135,7 @@ class ImageEnhancement(Cmd):
         #       0], self.videoCapture.get_size()[1]))
         self.videoWriter = cv2.VideoWriter(
             self.outputVideoDataPath, cv2.VideoWriter_fourcc(*'MJPG'),
-            self.videoCapture.get_fps(), (self.videoCapture.get_size()[0] * 2, self.videoCapture.get_size()[1]))
+            self.videoCapture.get_fps(), (self.videoCapture.get_size()[0], self.videoCapture.get_size()[1]))
 
     def loopRun(self):
 
