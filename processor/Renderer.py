@@ -28,6 +28,7 @@ class Renderer():
     def do_Rendering(self, image, adjusters):
 
         height, width, _ = np.shape(image)
+
         middle = width // 2
 
         # 1 part -未开启增强模式
@@ -36,44 +37,77 @@ class Renderer():
         
         # 2 part
         elif(self.deltaTime >0 and self.deltaTime <= Renderer.timeAcc1):
-            imageCenter = Renderer.get_middle(self, image, 0.5)
+            width = np.shape(image)[1]
+            width_image_left = width // 2
+            width_image_right = width - width_image_left
+            image_left = Renderer.get_middle(self, image, width_image_left)
+            image_right = Renderer.get_middle(self, image, width_image_right)
             
-            target = np.hstack((imageCenter, imageCenter))
+            target = np.hstack((image_left, image_right))
+            # print(np.shape(target)[1])
 
         # 3 part
         elif(self.deltaTime <= Renderer.timeAcc2):
             sliderPercent = (self.deltaTime - Renderer.timeAcc1) / Renderer.timeStep2 #local percent
-            imageCenter_origin = Renderer.get_middle(self, image, 0.5)
-            imageCenter_origin_left_rendering = Renderer.get_left(self, imageCenter_origin, sliderPercent)
-            imageCenter_origin_right = Renderer.get_right(self, imageCenter_origin, 1.0 - sliderPercent)
+            
+            width = np.shape(image)[1]
+            width_image_left = width // 2
+            width_image_right = width - width_image_left
+            image_left = Renderer.get_middle(self, image, width_image_left)
+            image_right = Renderer.get_middle(self, image, width_image_right)
+
+            width_image_left_left = int(width_image_left * sliderPercent)
+            width_image_left_right = width_image_left - width_image_left_left
+
+            image_left_left = Renderer.get_left(self, image_left, width_image_left_left)
+            image_left_right = Renderer.get_right(self, image_left, width_image_left_right)
+
             # frame process with time
             for adjuster in adjusters:
-                imageCenter_origin_left_rendering = adjuster.do_it(imageCenter_origin_left_rendering)
+                image_left_left = adjuster.do_it(image_left_left)
 
-            target = np.hstack((imageCenter_origin_left_rendering, imageCenter_origin_right, imageCenter_origin))
+            # print(width_image_left_left + width_image_left_right)
+            # print(width_image_right)
+
+            target = np.hstack((np.hstack((image_left_left, image_left_right)), image_right))
             
         # 2 part
         elif(self.deltaTime <= Renderer.timeAcc3):
-            imageCenter = Renderer.get_middle(self, image, 0.5)
-            imageCenter_rendering = imageCenter
+
+            width = np.shape(image)[1]
+            width_image_left = width // 2
+            width_image_right = width - width_image_left
+            image_left = Renderer.get_middle(self, image, width_image_left)
+            image_right = Renderer.get_middle(self, image, width_image_right)
+
             # frame process with time
             for adjuster in adjusters:
-                imageCenter_rendering = adjuster.do_it(imageCenter_rendering)
+                image_left = adjuster.do_it(image_left)
 
-            target = np.hstack((imageCenter_rendering, imageCenter))
+            target = np.hstack((image_left, image_right))
 
         # 2 part
         elif(self.deltaTime <= Renderer.timeAcc4):
             sliderPercent = (self.deltaTime - Renderer.timeAcc3 + Renderer.timeStep2) / (Renderer.timeStep4 + Renderer.timeStep2)
-            imageCenter_rendering = Renderer.get_middle(self, image, sliderPercent)
+
+            width = np.shape(image)[1]
+            width_image_left_source = width // 2
+            width_image_right_source = width - width_image_left_source
+            # 获取视频中间部分，作为右部图片的原料
+            image_right_source = Renderer.get_middle(self, image, width_image_right_source)
+
+            width_image_left = int(width * sliderPercent)
+            width_image_right = width - width_image_left
+
+            image_left = Renderer.get_middle(self, image, width_image_left)
+            # print(np.shape(image))
+            image_right = Renderer.get_left(self, image_right_source, width_image_right)
+            # print(np.shape(image_right_source))
             # frame process with time
             for adjuster in adjusters:
-                imageCenter_rendering = adjuster.do_it(imageCenter_rendering)
-
-            iamgeCenter = Renderer.get_middle(self, image, 0.5)
-            imageCenter_right = Renderer.get_left(self, image, 1.0 - sliderPercent)
+                image_left = adjuster.do_it(image_left)
             
-            target = np.hstack((imageCenter_rendering, imageCenter_right))
+            target = np.hstack((image_left, image_right))
 
         else:
             image_rendering = image
@@ -86,28 +120,27 @@ class Renderer():
 
         return target
 
-    def get_middle(self, image, percent):
-        
-        height, width, _ = np.shape(image)
-        middle = width // 2
-        edge = int(percent * middle)
+    def get_middle(self, image, widthNeeded):
 
-        begin = middle - edge
-        end = middle + edge
+        width = np.shape(image)[1]
+        middle = width // 2
+        
+        widthNeeded_left = widthNeeded // 2
+        widthNeeded_right = widthNeeded - widthNeeded_left
+        begin = middle - widthNeeded_left
+        end = middle + widthNeeded_right
 
         return image[:, begin:end]
 
-    def get_left(self, image, percent):
-        height, width, _ = np.shape(image)
-        end = int(percent * width)
-        
-        return image[:, :end]
+    def get_left(self, image, widthNeeded):
+        return image[:, :widthNeeded]
 
-    def get_right(left, image, percent):
-        height, width, _ = np.shape(image)
-        begin = int((1.0 - percent) * width)
+    def get_right(left, image, widthNeeded):
+        width = np.shape(image)[1]
+
+        widthNeeded_left = width - widthNeeded
         
-        return image[:, begin:]
+        return image[:, widthNeeded_left:]
 
     def createTrackerBar(self, windowName):
         cv2.createTrackbar("Render", windowName,
