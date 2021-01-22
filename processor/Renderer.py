@@ -43,8 +43,7 @@ class Renderer():
             image_left = Renderer.get_middle(self, image, width_image_left)
             image_right = Renderer.get_middle(self, image, width_image_right)
             
-            target = np.hstack((image_left, image_right))
-            # print(np.shape(target)[1])
+            target = Renderer.generateImage(self, image_left, image_right)
 
         # 3 part
         elif(self.deltaTime <= Renderer.timeAcc2):
@@ -63,13 +62,11 @@ class Renderer():
             image_left_right = Renderer.get_right(self, image_left, width_image_left_right)
 
             # frame process with time
-            for adjuster in adjusters:
-                image_left_left = adjuster.do_it(image_left_left)
+            if image_left_left.size != 0:
+                for adjuster in adjusters:
+                    image_left_left = adjuster.do_it(image_left_left)
 
-            # print(width_image_left_left + width_image_left_right)
-            # print(width_image_right)
-
-            target = np.hstack((np.hstack((image_left_left, image_left_right)), image_right))
+            target = Renderer.generateImage(self, image_left_left, image_left_right, image_right)
             
         # 2 part
         elif(self.deltaTime <= Renderer.timeAcc3):
@@ -81,10 +78,11 @@ class Renderer():
             image_right = Renderer.get_middle(self, image, width_image_right)
 
             # frame process with time
-            for adjuster in adjusters:
-                image_left = adjuster.do_it(image_left)
+            if image_left.size != 0:
+                for adjuster in adjusters:
+                    image_left = adjuster.do_it(image_left)
 
-            target = np.hstack((image_left, image_right))
+            target = Renderer.generateImage(self, image_left, image_right)
 
         # 2 part
         elif(self.deltaTime <= Renderer.timeAcc4):
@@ -104,17 +102,18 @@ class Renderer():
             image_right = Renderer.get_left(self, image_right_source, width_image_right)
             # print(np.shape(image_right_source))
             # frame process with time
-            for adjuster in adjusters:
-                image_left = adjuster.do_it(image_left)
+            if image_left.size != 0:
+                for adjuster in adjusters:
+                    image_left = adjuster.do_it(image_left)
             
-            target = np.hstack((image_left, image_right))
+            target = Renderer.generateImage(self, image_left, image_right)
 
         else:
-            image_rendering = image
-            for adjuster in adjusters:
-                image_rendering = adjuster.do_it(image_rendering)
+            if image.size != 0:
+                for adjuster in adjusters:
+                    image = adjuster.do_it(image)
 
-            target = image_rendering
+            target = image
 
         self.deltaTime = (cv2.getTickCount() - self.tickCount) / cv2.getTickFrequency()
 
@@ -146,3 +145,12 @@ class Renderer():
         cv2.createTrackbar("Render", windowName,
                 0, 1, self.set_tickCount)
         
+    
+    def generateImage(self, *images):
+        # 可能存在为None的image
+        # realImage = []
+        # for image in images:
+        #     print("run append")
+        #     realImage.append(image)
+        # 维度需要匹配
+        return np.hstack(images)
