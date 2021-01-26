@@ -1,1 +1,1 @@
-{"adjustData/std1.txt": [{"unsharpenmask": {"ksize": 5, "sigma": 0, "weight": 1.0}}, {"vibrance": {"intensity": 0.08}}, {"BrightnessContrast": {"brightness": 0, "contrast": 5}}]}
+{"adjustData/std1.txt": [{"unsharpenmask": {"ksize": 5, "sigma": 0, "weight": 1.2}}, {"vibrance": {"intensity": 0.08}}, {"BrightnessContrast": {"brightness": 0, "contrast": 8}}]}

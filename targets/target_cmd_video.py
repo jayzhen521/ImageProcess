@@ -86,6 +86,7 @@ class ImageEnhancement(Cmd):
                 # outer loop run only once...
                 for adjustItem in adjustDataDict[self.outputAdjustDataPath]:
                     for key in adjustItem:
+                        print(key)
                         d = adjustItem[key]
                         self.adjusters.append(AdjusterFactory.createAdjuster(key, d))
 
@@ -115,7 +116,7 @@ class ImageEnhancement(Cmd):
             self.width, self.height = self.videoCapture.get_size()
 
             # 调节输出设定
-            self.outputAdjustDataPath = "adjustData/std2.txt"
+            self.outputAdjustDataPath = "adjustData/std1.txt"
 
             self.videoControl = VideoControl()
 
